@@ -26,6 +26,22 @@ class Program
         return (partitionIndex + 1, comparisonCount);
     }
 
+    static int QuickSort(int[] array, int startIndex, int endIndex)
+    {
+        int comparisonCount = 0;
+
+        if (startIndex < endIndex)
+        {
+            var (pivotIndex, partComparison) = Partition(array, startIndex, endIndex);
+
+            comparisonCount += partComparison;
+            comparisonCount += QuickSort(array, startIndex, pivotIndex - 1);
+            comparisonCount += QuickSort(array, pivotIndex + 1, endIndex);
+        }
+
+        return comparisonCount;
+    }
+
     static (int PivotIndex, int ComparisonCount) Partition2(int[] array, int startIndex, int endIndex)
     {
         int comparisonCount = 0;
@@ -64,6 +80,44 @@ class Program
         (array[partitionIndex + 1], array[endIndex]) = (array[endIndex], array[partitionIndex + 1]);
 
         return (partitionIndex + 1, comparisonCount);
+    }
+
+    static int QuickSort2(int[] array, int startIndex, int endIndex)
+    {
+        int comparisonCount = 0;
+
+        if (startIndex < endIndex)
+        {
+            if (endIndex - startIndex + 1 > 3)
+            {
+                var (pivotIndex, partComparison) = Partition2(array, startIndex, endIndex);
+
+                comparisonCount += partComparison;
+                comparisonCount += QuickSort2(array, startIndex, pivotIndex - 1);
+                comparisonCount += QuickSort2(array, pivotIndex + 1, endIndex);
+            }
+            else
+            {
+                for (int i = startIndex + 1; i <= endIndex; i++)
+                {
+                    int key = array[i];
+                    int j = i - 1;
+                    while (j >= startIndex && array[j] > key)
+                    {
+                        comparisonCount++;
+                        array[j + 1] = array[j];
+                        j--;
+                    }
+
+                    if (j >= startIndex)
+                        comparisonCount++;
+
+                    array[j + 1] = key;
+                }
+            }
+        }
+
+        return comparisonCount;
     }
 
     static (int LowIndex, int MidIndex, int HighIndex, int ComparisonCount) Partition3(int[] array, int startIndex, int endIndex)
@@ -170,60 +224,6 @@ class Program
         (array[endIndex], array[highBound]) = (array[highBound], array[endIndex]);
 
         return (leftBound, current, highBound, comparisonCount);
-    }
-
-    static int QuickSort(int[] array, int startIndex, int endIndex)
-    {
-        int comparisonCount = 0;
-
-        if (startIndex < endIndex)
-        {
-            var (pivotIndex, partComparison) = Partition(array, startIndex, endIndex);
-
-            comparisonCount += partComparison;
-            comparisonCount += QuickSort(array, startIndex, pivotIndex - 1);
-            comparisonCount += QuickSort(array, pivotIndex + 1, endIndex);
-        }
-
-        return comparisonCount;
-    }
-
-    static int QuickSort2(int[] array, int startIndex, int endIndex)
-    {
-        int comparisonCount = 0;
-
-        if (startIndex < endIndex)
-        {
-            if (endIndex - startIndex + 1 > 3)
-            {
-                var (pivotIndex, partComparison) = Partition2(array, startIndex, endIndex);
-
-                comparisonCount += partComparison;
-                comparisonCount += QuickSort2(array, startIndex, pivotIndex - 1);
-                comparisonCount += QuickSort2(array, pivotIndex + 1, endIndex);
-            }
-            else
-            {
-                for (int i = startIndex + 1; i <= endIndex; i++)
-                {
-                    int key = array[i];
-                    int j = i - 1;
-                    while (j >= startIndex && array[j] > key)
-                    {
-                        comparisonCount++;
-                        array[j + 1] = array[j];
-                        j--;
-                    }
-
-                    if (j >= startIndex)
-                        comparisonCount++;
-
-                    array[j + 1] = key;
-                }
-            }
-        }
-
-        return comparisonCount;
     }
 
     static int QuickSort3(int[] array, int startIndex, int endIndex)
