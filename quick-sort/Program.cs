@@ -1,228 +1,302 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 
-class QuickSortDemo
+class Program
 {
-    static long comparisonsStandard = 0;
-    static long comparisonsModified = 0;
-    static long comparisonsThreePivots = 0;
-
-    public static void Main(string[] args)
+    static (int PivotIndex, int ComparisonCount) Partition(int[] array, int startIndex, int endIndex)
     {
-        if (args.Length != 1)
-        {
-            Console.WriteLine("Input file was not provided");
-            return;
-        }
+        int comparisonCount = 0;
 
-        string inputFileName = args[0];
-        if (!File.Exists(inputFileName))
+        int pivotElement = array[endIndex];
+        int partitionIndex = startIndex - 1
+        ;
+        for (int currentIndex = startIndex; currentIndex < endIndex; currentIndex++)
         {
-            Console.WriteLine("File was not found");
-            return;
-        }
+            comparisonCount++;
 
-        int[] arrOriginal;
-        try
-        {
-            string[] lines = File.ReadAllLines(inputFileName);
-            int n = int.Parse(lines[0]);
-            arrOriginal = lines.Skip(1).Take(n).Select(int.Parse).ToArray();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error reading input file: " + ex.Message);
-            return;
-        }
-
-        int[] arrStandard = (int[])arrOriginal.Clone();
-        int[] arrModified = (int[])arrOriginal.Clone();
-        int[] arrThreePivots = (int[])arrOriginal.Clone();
-
-        QuickSortStandard(arrStandard, 0, arrStandard.Length - 1);
-        QuickSortModified(arrModified, 0, arrModified.Length - 1);
-        QuickSortThreePivots(arrThreePivots, 0, arrThreePivots.Length - 1);
-
-        string result = $"{comparisonsStandard} {comparisonsModified} {comparisonsThreePivots}";
-        string programName = "ip43_diachenko_03";
-        string outputFileName = $"{programName}_output.txt";
-
-        try
-        {
-            File.WriteAllText(outputFileName, result);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error writing output file: " + ex.Message);
-        }
-    }
-
-    static void QuickSortStandard(int[] arr, int left, int right)
-    {
-        if (left < right)
-        {
-            int pivotIndex = PartitionStandard(arr, left, right);
-            QuickSortStandard(arr, left, pivotIndex - 1);
-            QuickSortStandard(arr, pivotIndex + 1, right);
-        }
-    }
-
-    static int PartitionStandard(int[] arr, int left, int right)
-    {
-        int pivot = arr[right];
-        int i = left - 1;
-        for (int j = left; j < right; j++)
-        {
-            comparisonsStandard++;
-            if (arr[j] < pivot)
+            if (array[currentIndex] <= pivotElement)
             {
-                i++;
-                Swap(arr, i, j);
+                partitionIndex++;
+                (array[partitionIndex], array[currentIndex]) = (array[currentIndex], array[partitionIndex]);
             }
         }
-        Swap(arr, i + 1, right);
-        return i + 1;
+        (array[partitionIndex + 1], array[endIndex]) = (array[endIndex], array[partitionIndex + 1]);
+
+        return (partitionIndex + 1, comparisonCount);
     }
 
-    static void QuickSortModified(int[] arr, int left, int right)
+    static (int PivotIndex, int ComparisonCount) Partition2(int[] array, int startIndex, int endIndex)
     {
-        if (right - left + 1 <= 3)
-        {
-            InsertionSort(arr, left, right, ref comparisonsModified);
-            return;
-        }
-        if (left < right)
-        {
-            int pivotIndex = PartitionModified(arr, left, right);
-            QuickSortModified(arr, left, pivotIndex - 1);
-            QuickSortModified(arr, pivotIndex + 1, right);
-        }
-    }
+        int comparisonCount = 0;
 
-    static int PartitionModified(int[] arr, int left, int right)
-    {
-        int middle = left + (right - left) / 2;
-        int medianIndex = MedianOfThree(arr, left, middle, right);
-        Swap(arr, medianIndex, right);
+        int firstElement = array[startIndex];
+        int middleElement = array[(startIndex + endIndex) / 2];
+        int lastElement = array[endIndex];
 
-        int pivot = arr[right];
-        int i = left - 1;
-        for (int j = left; j < right; j++)
+        int[] trio = new int[] { firstElement, middleElement, lastElement };
+
+        int pivotElement = trio.OrderBy(x => x).ElementAt(1);
+        int pivotIndex;
+
+        if (pivotElement == firstElement)
+            pivotIndex = startIndex;
+        else if (pivotElement == middleElement)
+            pivotIndex = (startIndex + endIndex) / 2;
+        else
+            pivotIndex = endIndex;
+
+        (array[pivotIndex], array[endIndex]) = (array[endIndex], array[pivotIndex]);
+
+        int partitionIndex = startIndex - 1;
+
+        for (int currentIndex = startIndex; currentIndex < endIndex; currentIndex++)
         {
-            comparisonsModified++;
-            if (arr[j] < pivot)
+            comparisonCount++;
+
+            if (array[currentIndex] <= pivotElement)
             {
-                i++;
-                Swap(arr, i, j);
+                partitionIndex++;
+                (array[partitionIndex], array[currentIndex]) = (array[currentIndex], array[partitionIndex]);
             }
         }
-        Swap(arr, i + 1, right);
-        return i + 1;
+
+        (array[partitionIndex + 1], array[endIndex]) = (array[endIndex], array[partitionIndex + 1]);
+
+        return (partitionIndex + 1, comparisonCount);
     }
 
-    static int MedianOfThree(int[] arr, int left, int middle, int right)
+    static (int LowIndex, int MidIndex, int HighIndex, int ComparisonCount) Partition3(int[] array, int startIndex, int endIndex)
     {
-        int a = arr[left], b = arr[middle], c = arr[right];
-        if ((a <= b && b <= c) || (c <= b && b <= a)) return middle;
-        else if ((b <= a && a <= c) || (c <= a && a <= b)) return left;
-        else return right;
-    }
+        int comparisonCount = 3;
 
-    static void QuickSortThreePivots(int[] arr, int left, int right)
-    {
-        if (right - left + 1 <= 3)
+        if (array[startIndex] > array[endIndex])
+            (array[startIndex], array[endIndex]) = (array[endIndex], array[startIndex]);
+        if (array[startIndex + 1] > array[endIndex])
+            (array[startIndex + 1], array[endIndex]) = (array[endIndex], array[startIndex + 1]);
+        if (array[startIndex] > array[startIndex + 1])
+            (array[startIndex], array[startIndex + 1]) = (array[startIndex + 1], array[startIndex]);
+
+        int leftBound = startIndex + 2, current = startIndex + 2, rightBound = endIndex - 1, highBound = endIndex - 1;
+        int lowElement = array[startIndex], midElement = array[startIndex + 1], highElement = array[endIndex];
+
+        while (current <= rightBound)
         {
-            InsertionSort(arr, left, right, ref comparisonsThreePivots);
-            return;
+            while (current <= rightBound && array[current] < midElement)
+            {
+                comparisonCount++;
+
+                if (array[current] < lowElement)
+                {
+                    (array[leftBound], array[current]) = (array[current], array[leftBound]);
+                    leftBound++;
+                }
+
+                current++;
+                comparisonCount++;
+            }
+            while (current <= rightBound && array[rightBound] > midElement)
+            {
+                comparisonCount++;
+
+                if (array[rightBound] > highElement)
+                {
+                    (array[rightBound], array[highBound]) = (array[highBound], array[rightBound]);
+                    highBound--;
+                }
+
+                rightBound--;
+                comparisonCount++;
+            }
+
+            if (current <= rightBound)
+            {
+                comparisonCount++;
+
+                if (array[current] > highElement)
+                {
+                    comparisonCount++;
+
+                    if (array[rightBound] < lowElement)
+                    {
+                        (array[current], array[leftBound]) = (array[leftBound], array[current]);
+                        (array[leftBound], array[rightBound]) = (array[rightBound], array[leftBound]);
+
+                        leftBound++;
+                    }
+                    else
+                    {
+                        (array[current], array[rightBound]) = (array[rightBound], array[current]);
+                    }
+
+                    (array[rightBound], array[highBound]) = (array[highBound], array[rightBound]);
+
+                    current++;
+                    rightBound--;
+                    highBound--;
+                }
+                else
+                {
+                    comparisonCount++;
+
+                    if (array[rightBound] < lowElement)
+                    {
+                        (array[current], array[leftBound]) = (array[leftBound], array[current]);
+                        (array[leftBound], array[rightBound]) = (array[rightBound], array[leftBound]);
+
+                        leftBound++;
+                    }
+                    else
+                    {
+                        (array[current], array[rightBound]) = (array[rightBound], array[current]);
+                    }
+
+                    current++;
+                    rightBound--;
+                }
+            }
         }
 
-        if (arr[left] > arr[left + 1])
-            Swap(arr, left, left + 1);
-        if (arr[left] > arr[right])
-            Swap(arr, left, right);
-        if (arr[left + 1] > arr[right])
-            Swap(arr, left + 1, right);
+        leftBound--;
+        current--;
+        highBound++;
 
-        int q1 = arr[left];
-        int q2 = arr[left + 1];
-        int q3 = arr[right];
+        (array[startIndex + 1], array[leftBound]) = (array[leftBound], array[startIndex + 1]);
+        (array[leftBound], array[current]) = (array[current], array[leftBound]);
 
-        List<int> list1 = new List<int>();
-        List<int> list2 = new List<int>();
-        List<int> list3 = new List<int>();
-        List<int> list4 = new List<int>();
+        leftBound--;
 
-        for (int i = left + 2; i <= right - 1; i++)
+        (array[startIndex], array[leftBound]) = (array[leftBound], array[startIndex]);
+        (array[endIndex], array[highBound]) = (array[highBound], array[endIndex]);
+
+        return (leftBound, current, highBound, comparisonCount);
+    }
+
+    static int QuickSort(int[] array, int startIndex, int endIndex)
+    {
+        int comparisonCount = 0;
+
+        if (startIndex < endIndex)
         {
-            comparisonsThreePivots++;
-            if (arr[i] < q1)
-                list1.Add(arr[i]);
+            var (pivotIndex, partComparison) = Partition(array, startIndex, endIndex);
+
+            comparisonCount += partComparison;
+            comparisonCount += QuickSort(array, startIndex, pivotIndex - 1);
+            comparisonCount += QuickSort(array, pivotIndex + 1, endIndex);
+        }
+
+        return comparisonCount;
+    }
+
+    static int QuickSort2(int[] array, int startIndex, int endIndex)
+    {
+        int comparisonCount = 0;
+
+        if (startIndex < endIndex)
+        {
+            if (endIndex - startIndex + 1 > 3)
+            {
+                var (pivotIndex, partComparison) = Partition2(array, startIndex, endIndex);
+
+                comparisonCount += partComparison;
+                comparisonCount += QuickSort2(array, startIndex, pivotIndex - 1);
+                comparisonCount += QuickSort2(array, pivotIndex + 1, endIndex);
+            }
             else
             {
-                comparisonsThreePivots++;
-                if (arr[i] < q2)
-                    list2.Add(arr[i]);
-                else
+                for (int i = startIndex + 1; i <= endIndex; i++)
                 {
-                    comparisonsThreePivots++;
-                    if (arr[i] < q3)
-                        list3.Add(arr[i]);
-                    else
-                        list4.Add(arr[i]);
+                    int key = array[i];
+                    int j = i - 1;
+                    while (j >= startIndex && array[j] > key)
+                    {
+                        comparisonCount++;
+                        array[j + 1] = array[j];
+                        j--;
+                    }
+
+                    if (j >= startIndex)
+                        comparisonCount++;
+
+                    array[j + 1] = key;
                 }
             }
         }
 
-        int index = left;
-        foreach (var num in list1)
-            arr[index++] = num;
-        int q1Index = index;
-        arr[index++] = q1;
-
-        foreach (var num in list2)
-            arr[index++] = num;
-        int q2Index = index;
-        arr[index++] = q2;
-
-        foreach (var num in list3)
-            arr[index++] = num;
-        int q3Index = index;
-        arr[index++] = q3;
-
-        foreach (var num in list4)
-            arr[index++] = num;
-
-        QuickSortThreePivots(arr, left, q1Index - 1);
-        QuickSortThreePivots(arr, q1Index + 1, q2Index - 1);
-        QuickSortThreePivots(arr, q2Index + 1, q3Index - 1);
-        QuickSortThreePivots(arr, q3Index + 1, right);
+        return comparisonCount;
     }
 
-    static void InsertionSort(int[] arr, int left, int right, ref long comparisons)
+    static int QuickSort3(int[] array, int startIndex, int endIndex)
     {
-        for (int i = left + 1; i <= right; i++)
+        int comparisonCount = 0;
+
+        if (startIndex < endIndex)
         {
-            int key = arr[i];
-            int j = i - 1;
-            while (j >= left)
+            if (endIndex - startIndex + 1 > 3)
             {
-                comparisons++;
-                if (arr[j] > key)
-                {
-                    arr[j + 1] = arr[j];
-                    j--;
-                }
-                else
-                    break;
+                var (lowIndex, midIndex, highIndex, partComparison) = Partition3(array, startIndex, endIndex);
+
+                comparisonCount += partComparison;
+                comparisonCount += QuickSort3(array, startIndex, lowIndex - 1);
+                comparisonCount += QuickSort3(array, lowIndex + 1, midIndex - 1);
+                comparisonCount += QuickSort3(array, midIndex + 1, highIndex - 1);
+                comparisonCount += QuickSort3(array, highIndex + 1, endIndex);
             }
-            arr[j + 1] = key;
+            else
+            {
+                for (int i = startIndex + 1; i <= endIndex; i++)
+                {
+                    int key = array[i];
+                    int j = i - 1;
+
+                    while (j >= startIndex && array[j] > key)
+                    {
+                        comparisonCount++;
+                        array[j + 1] = array[j];
+                        j--;
+                    }
+
+                    if (j >= startIndex)
+                        comparisonCount++;
+
+                    array[j + 1] = key;
+                }
+            }
         }
+        return comparisonCount;
     }
 
-    static void Swap(int[] arr, int i, int j)
+    static void Main(string[] args)
     {
-        (arr[i], arr[j]) = (arr[j], arr[i]);
+        if (args.Length == 0)
+        {
+            Console.WriteLine("File was not provided.");
+            return;
+        }
+
+        string filename = args[0];
+        if (!File.Exists(filename))
+        {
+            Console.WriteLine("File was not found.");
+            return;
+        }
+
+        string[] lines = File.ReadAllLines(filename);
+        int dataLength = int.Parse(lines[0].Trim());
+        int[] data = new int[dataLength];
+        for (int i = 0; i < dataLength; i++)
+        {
+            data[i] = int.Parse(lines[i + 1].Trim());
+        }
+
+        int[] testArray1 = (int[])data.Clone();
+        int[] testArray2 = (int[])data.Clone();
+        int[] testArray3 = (int[])data.Clone();
+
+        int method1 = QuickSort(testArray1, 0, dataLength - 1);
+        int method2 = QuickSort2(testArray2, 0, dataLength - 1);
+        int method3 = QuickSort3(testArray3, 0, dataLength - 1);
+
+        File.WriteAllText("ip43_diachenko_03_output.txt", $"{method1} {method2} {method3}\n");
     }
 }
