@@ -9,8 +9,8 @@ class Program
         int comparisonCount = 0;
 
         int pivotElement = array[endIndex];
-        int partitionIndex = startIndex - 1
-        ;
+        int partitionIndex = startIndex - 1;
+
         for (int currentIndex = startIndex; currentIndex < endIndex; currentIndex++)
         {
             comparisonCount++;
@@ -263,6 +263,7 @@ class Program
                 }
             }
         }
+
         return comparisonCount;
     }
 
